@@ -5,10 +5,9 @@ from datetime import date, datetime
 import pytz
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-CHAT_ID   = os.environ.get("CHAT_ID", "YOUR_CHAT_ID_HERE")
+BOT_TOKEN = os.environ.get("BOT_TOKEN") or "8792743473:AAFbtq7JuVSm0jaW8tcArL914fxERoW8Xm4"
+CHAT_ID   = os.environ.get("CHAT_ID") or "-5269990699"
 IST       = pytz.timezone("Asia/Kolkata")
-URL       = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
 SCHEDULE = {
     "2026-03-16": {"day_no": "43", "date_str": "16.03.2026", "week": "Week 07", "maths": "Time & Work - Video 9,10", "english": "Pronoun - Video 1,2", "gs": "Revision - Modern History PYQ Q.536-760", "reasoning": "Pinnacle Series Pg.211 Q.168-267", "static_gk": "Monuments in India & their Builders (Part 2-4.4)", "vocab": "Nimisha Bansal Vocab PDF of 14/01/2026 - Any 60 vocabs - Total 60"},
@@ -51,10 +50,13 @@ def build_message():
     )
 
 def send_schedule():
+    url = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage"
     msg = build_message()
+    print(f"Using token: {BOT_TOKEN[:10]}...")
+    print(f"Using chat_id: {CHAT_ID}")
     for attempt in range(3):
         try:
-            resp = requests.post(URL, data={"chat_id": CHAT_ID, "text": msg}, timeout=30)
+            resp = requests.post(url, data={"chat_id": CHAT_ID, "text": msg}, timeout=30)
             if resp.status_code == 200:
                 now = datetime.now(IST).strftime("%Y-%m-%d %H:%M")
                 print(f"[{now} IST] Message sent successfully.")

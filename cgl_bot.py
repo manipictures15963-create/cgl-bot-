@@ -75,14 +75,3 @@ if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone=IST)
     scheduler.add_job(send_schedule, trigger="cron", hour=2, minute=0)
     scheduler.start()
-```
-
-**4.** Click **"Commit changes"** ✅
-
----
-
-Then do the same for **requirements.txt** — paste only:
-```
-requests==2.31.0
-APScheduler==3.10.4
-pytz==2024.1

@@ -172,6 +172,9 @@ async def main():
     scheduler.start()
     print("CGL 2026 Bot is running.")
     print("Scheduled: 2:00 AM IST daily (16 Mar – 22 Mar 2026)")
+    print("Sending test message now...")
+    await send_schedule()
+    print("Test message sent! Check your Telegram group.")
     print("Press Ctrl+C to stop.")
     try:
         while True:

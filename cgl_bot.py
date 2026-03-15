@@ -77,9 +77,11 @@ if __name__ == "__main__":
     scheduler.start()
 ```
 
+**4.** Click **"Commit changes"** ✅
+
 ---
 
-**File 2 — requirements.txt** → pencil → Ctrl+A → Delete → paste this:
+Then do the same for **requirements.txt** — paste only:
 ```
 requests==2.31.0
 APScheduler==3.10.4

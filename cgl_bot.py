@@ -1,14 +1,14 @@
 import os
-import asyncio
+import time
+import requests
 from datetime import date, datetime
 import pytz
-from telegram import Bot
-from telegram.request import HTTPXRequest
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-CHAT_ID   = int(os.environ.get("CHAT_ID", "0"))
+CHAT_ID   = os.environ.get("CHAT_ID", "YOUR_CHAT_ID_HERE")
 IST       = pytz.timezone("Asia/Kolkata")
+URL       = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
 SCHEDULE = {
     "2026-03-16": {"day_no": "43", "date_str": "16.03.2026", "week": "Week 07", "maths": "Time & Work - Video 9,10", "english": "Pronoun - Video 1,2", "gs": "Revision - Modern History PYQ Q.536-760", "reasoning": "Pinnacle Series Pg.211 Q.168-267", "static_gk": "Monuments in India & their Builders (Part 2-4.4)", "vocab": "Nimisha Bansal Vocab PDF of 14/01/2026 - Any 60 vocabs - Total 60"},
@@ -50,34 +50,37 @@ def build_message():
         f"✨ Stay focused and complete all tasks ✅🚀"
     )
 
-async def send_schedule():
+def send_schedule():
+    msg = build_message()
     for attempt in range(3):
         try:
-            request = HTTPXRequest(connect_timeout=30, read_timeout=30, write_timeout=30)
-            bot = Bot(token=BOT_TOKEN, request=request)
-            async with bot:
-                await bot.send_message(chat_id=CHAT_ID, text=build_message())
-            print(f"[{datetime.now(IST).strftime('%Y-%m-%d %H:%M')} IST] Message sent successfully.")
-            return
+            resp = requests.post(URL, data={"chat_id": CHAT_ID, "text": msg}, timeout=30)
+            if resp.status_code == 200:
+                now = datetime.now(IST).strftime("%Y-%m-%d %H:%M")
+                print(f"[{now} IST] Message sent successfully.")
+                return
+            else:
+                print(f"Attempt {attempt+1} failed: {resp.text}")
         except Exception as e:
-            print(f"Attempt {attempt+1} failed: {e}")
-            await asyncio.sleep(5)
+            print(f"Attempt {attempt+1} error: {e}")
+        time.sleep(5)
     print("All 3 attempts failed.")
 
-async def main():
-    scheduler = AsyncIOScheduler(timezone=IST)
-    scheduler.add_job(send_schedule, trigger="cron", hour=2, minute=0, id="job_2am")
-    scheduler.start()
+if __name__ == "__main__":
     print("CGL 2026 Bot is running.")
     print("Scheduled: 2:00 AM IST daily (16 Mar - 22 Mar 2026)")
     print("Sending test message now...")
-    await send_schedule()
-    print("Done.")
-    try:
-        while True:
-            await asyncio.sleep(3600)
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
+    send_schedule()
+    print("Done. Waiting for scheduled time...")
+    scheduler = BlockingScheduler(timezone=IST)
+    scheduler.add_job(send_schedule, trigger="cron", hour=2, minute=0)
+    scheduler.start()
+```
 
-if __name__ == "__main__":
-    asyncio.run(main())
+---
+
+**File 2 — requirements.txt** → pencil → Ctrl+A → Delete → paste this:
+```
+requests==2.31.0
+APScheduler==3.10.4
+pytz==2024.1

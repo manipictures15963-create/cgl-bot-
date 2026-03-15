@@ -3,6 +3,7 @@ import asyncio
 from datetime import date, datetime
 import pytz
 from telegram import Bot
+from telegram.request import HTTPXRequest
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
@@ -50,9 +51,18 @@ def build_message():
     )
 
 async def send_schedule():
-    bot = Bot(token=BOT_TOKEN)
-    await bot.send_message(chat_id=CHAT_ID, text=build_message())
-    print(f"[{datetime.now(IST).strftime('%Y-%m-%d %H:%M')} IST] Message sent successfully.")
+    for attempt in range(3):
+        try:
+            request = HTTPXRequest(connect_timeout=30, read_timeout=30, write_timeout=30)
+            bot = Bot(token=BOT_TOKEN, request=request)
+            async with bot:
+                await bot.send_message(chat_id=CHAT_ID, text=build_message())
+            print(f"[{datetime.now(IST).strftime('%Y-%m-%d %H:%M')} IST] Message sent successfully.")
+            return
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+            await asyncio.sleep(5)
+    print("All 3 attempts failed.")
 
 async def main():
     scheduler = AsyncIOScheduler(timezone=IST)
@@ -62,7 +72,7 @@ async def main():
     print("Scheduled: 2:00 AM IST daily (16 Mar - 22 Mar 2026)")
     print("Sending test message now...")
     await send_schedule()
-    print("Test message sent! Check your Telegram group.")
+    print("Done.")
     try:
         while True:
             await asyncio.sleep(3600)
